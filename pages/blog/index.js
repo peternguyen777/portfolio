@@ -1,10 +1,11 @@
+import React from "react";
 import Head from "next/head";
+import { sanityClient, urlFor } from "../../sanity";
+import Header from "../../components/Header";
+import Banner from "../../components/Banner";
 import Link from "next/link";
-import Banner from "../components/Banner";
-import Header from "../components/Header";
-import { sanityClient, urlFor } from "../sanity";
 
-export default function Home({ posts }) {
+const projects = ({ projects }) => {
   return (
     <div className='mx-auto max-w-7xl'>
       <Head>
@@ -19,7 +20,7 @@ export default function Home({ posts }) {
 
       {/* posts */}
       <div className=' grid grid-cols-1 gap-3 p-6 sm:grid-cols-2 md:gap-6 md:p-6 lg:grid-cols-3'>
-        {posts.map((post) => (
+        {projects.map((post) => (
           <Link key={post._id} href={`/post/${post.slug.current}`}>
             <div className='group cursor-pointer overflow-hidden rounded-lg border'>
               {post.mainImage && (
@@ -43,11 +44,6 @@ export default function Home({ posts }) {
                     ))}
                   </div>
                 </div>
-                {/* <img
-                  className='h-12 w-12 rounded-full'
-                  src={urlFor(post.author.image).url()}
-                  alt=''
-                /> */}
               </div>
             </div>
           </Link>
@@ -55,28 +51,30 @@ export default function Home({ posts }) {
       </div>
     </div>
   );
-}
+};
+
+export default projects;
 
 export const getServerSideProps = async () => {
-  const query = `*[_type == "post"]{
-    _id,
-    title,
-    slug,
-    author -> {
-      name,
-      image
-    },
-    mainImage,
-    categories[] -> {
-    title
-    },
-  }`;
+  const query = `*[_type == "post" && "Article" in categories[]->title]{
+      _id,
+      title,
+      slug,
+      author -> {
+        name,
+        image
+      },
+      mainImage,
+      categories[] -> {
+      title
+      },
+    }`;
 
-  const posts = await sanityClient.fetch(query);
+  const projects = await sanityClient.fetch(query);
 
   return {
     props: {
-      posts,
+      projects,
     },
   };
 };
